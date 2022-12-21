@@ -1,0 +1,9 @@
+project: eml_parser
+target: fuzz-eml
+testsuite:
+    - file://mayhem/testsuite
+
+cmds:
+  - cmd: /src/mayhem/fuzz_eml.py
+    libfuzzer: true
+    timeout: 12
