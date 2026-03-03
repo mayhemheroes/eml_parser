@@ -12,7 +12,7 @@ pipeline {
     gitlabBuilds(builds: ['Lint', 'Linters', 'Test results', 'Coverage'])
   }
   environment {
-     Python = "3.11"
+     Python = "3.13"
   }
 
   stages {
@@ -49,7 +49,7 @@ pipeline {
 
                         python -m venv .py_${Python}
                         source .py_${Python}/bin/activate
-                        pip install -U pip tox
+                        pip install -U pip "tox<5" "tox-uv"
 
                         tox
                       '''
@@ -117,46 +117,6 @@ pipeline {
       }
     }
 
-    stage('Build package') {
-      when {
-        allOf {
-          tag pattern: "v\\d+\\.\\d+\\.\\d+.*", comparator: "REGEXP"
-          expression {
-            currentBuild.result == null || currentBuild.result == 'SUCCESS'
-          }
-        }
-      }
-      steps {
-          withCredentials([usernamePassword(credentialsId: 'apps1-pypiserver-jenkins', usernameVariable: 'TWINE_USERNAME', passwordVariable: 'TWINE_PASSWORD')]) {
-            script {
-              try {
-                docker.image('python:' + Python).inside("--tmpfs /.local --tmpfs /.cache") {
-                  sh '''cat govcertCA.pem /etc/ssl/certs/ca-certificates.crt > ssl_cas.pem
-                        export
-                        export HTTP_PROXY="http://proxy.int.govcert.etat.lu:8080"
-                        export HTTPS_PROXY="http://proxy.int.govcert.etat.lu:8080"
-                        export NO_PROXY=localhost,127.0.0.1,.govcert.etat.lu
-                        export HOME=${PWD}
-                        export PIP_CERT=${PWD}/ssl_cas.pem
-                        export PATH=${PATH}:${PWD}/.local/bin
-                        export TWINE_CERT=${PWD}/ssl_cas.pem
-
-                        python3 -m pip install --upgrade build twine
-                        python3 -m build -o dist/ .
-                        twine upload dist/*.whl
-                      '''
-                }
-              } catch (err) {
-              }
-            }
-
-            updateGitlabCommitStatus name: 'Lint', state: 'canceled'
-            updateGitlabCommitStatus name: 'Linters', state: 'canceled'
-            updateGitlabCommitStatus name: 'Test results', state: 'canceled'
-            updateGitlabCommitStatus name: 'Coverage', state: 'canceled'
-          }
-      }
-    }
   }
 
   post {
