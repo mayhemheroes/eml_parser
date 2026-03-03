@@ -1,6 +1,5 @@
 # eml_parser
 
-[![Code Health](https://codebeat.co/badges/d631cfb2-a7f8-476a-9d2e-58e58db95bc8)](https://codebeat.co/projects/github-com-govcert-lu-eml_parser-master)
 [![Documentation Status](https://readthedocs.org/projects/eml-parser/badge/)](http://eml-parser.readthedocs.io)
 [![PyPI](https://badge.fury.io/py/eml-parser.svg)](https://badge.fury.io/py/eml-parser)
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/eml-parser.svg)](https://pypi.python.org/pypi/eml-parser/)
