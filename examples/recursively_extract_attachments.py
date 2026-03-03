@@ -35,8 +35,8 @@ def main():
 
     options = parser.parse_args()
 
-    scan_path = pathlib.Path(options.path)
-    out_path = pathlib.Path(options.outpath)
+    scan_path = pathlib.Path(options.path).resolve()
+    out_path = pathlib.Path(options.outpath).resolve()
 
     if not scan_path.is_dir():
         raise SystemExit('Specified path is not accessible')
@@ -53,8 +53,16 @@ def main():
             m = ep.decode_email(k)
 
             if 'attachment' in m:
+                attachment_counter = 0
+
                 for a in m['attachment']:
-                    out_filepath = out_path / a['filename']
+                    attachment_filename = pathlib.Path(a['filename']).name
+
+                    out_filepath = out_path / attachment_filename
+
+                    if out_filepath.is_dir():
+                        out_filepath = out_path / f'attachment_{attachment_counter}'
+                        attachment_counter += 1
 
                     print(f'\tWriting attachment: {out_filepath}')
                     with out_filepath.open('wb') as a_out:
