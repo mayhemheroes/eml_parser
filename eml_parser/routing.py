@@ -139,7 +139,7 @@ def parserouting(line: str) -> dict[str, typing.Any]:
 
     # structure is list[list[int, str]]
     # we sort based on the first element of the sub list, i.e. int
-    tout = sorted(tout, key=lambda x: typing.cast(int, x[0]))
+    tout = sorted(tout, key=lambda x: typing.cast('int', x[0]))
 
     # build regex.
     reg = ''

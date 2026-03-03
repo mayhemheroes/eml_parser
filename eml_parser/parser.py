@@ -322,7 +322,7 @@ class EmlParser:
         # parse and decode Date
         # If date field is present
         if 'date' in self.msg and self.msg.get('date') is not None:
-            headers_struc['date'] = datetime.datetime.fromisoformat(typing.cast(str, self.msg.get('date')))
+            headers_struc['date'] = datetime.datetime.fromisoformat(typing.cast('str', self.msg.get('date')))
         else:
             # If date field is absent...
             headers_struc['date'] = datetime.datetime.fromisoformat(eml_parser.decode.default_date)
@@ -840,7 +840,7 @@ class EmlParser:
                 v = eml_parser.decode.rfc2047_decode(v).replace('\n', '').replace('\r', '')
 
                 parsing_result: dict[str, typing.Any] = {}
-                parser_cls = typing.cast(email.headerregistry.AddressHeader, email.headerregistry.HeaderRegistry()[header])
+                parser_cls = typing.cast('email.headerregistry.AddressHeader', email.headerregistry.HeaderRegistry()[header])
                 parser_cls.parse(v, parsing_result)
                 for _group in parsing_result['groups']:
                     for _address in _group.addresses:
@@ -875,7 +875,7 @@ class EmlParser:
         if msg.is_multipart():
             boundary = msg.get_boundary(failobj=None)
             for part in msg.get_payload():
-                raw_body.extend(self.get_raw_body_text(typing.cast(email.message.Message, part), boundary=boundary))
+                raw_body.extend(self.get_raw_body_text(typing.cast('email.message.Message', part), boundary=boundary))
         else:
             # Treat text document attachments as belonging to the body of the mail.
             # Attachments with a file-extension of .htm/.html are implicitly treated
@@ -897,14 +897,14 @@ class EmlParser:
 
                 charset = msg.get_content_charset()
                 if charset is None:
-                    raw_body_b = typing.cast(bytes, msg.get_payload(decode=True))
+                    raw_body_b = typing.cast('bytes', msg.get_payload(decode=True))
                     raw_body_str = eml_parser.decode.decode_string(raw_body_b, None)
                 else:
                     try:
-                        raw_body_str = typing.cast(bytes, msg.get_payload(decode=True)).decode(charset, 'ignore')
+                        raw_body_str = typing.cast('bytes', msg.get_payload(decode=True)).decode(charset, 'ignore')
                     except (LookupError, ValueError):
                         logger.debug('An exception occurred while decoding the payload!', exc_info=True)
-                        raw_body_str = typing.cast(bytes, msg.get_payload(decode=True)).decode('ascii', 'ignore')
+                        raw_body_str = typing.cast('bytes', msg.get_payload(decode=True)).decode('ascii', 'ignore')
 
                 # In case we hit bug 27257 or any other parsing error, try to downgrade the used policy
                 try:
@@ -974,7 +974,7 @@ class EmlParser:
                     attachments.update(self.prepare_multipart_part_attachment(msg, counter))
 
             for part in msg.get_payload():
-                attachments.update(self.traverse_multipart(typing.cast(email.message.EmailMessage, part), counter))
+                attachments.update(self.traverse_multipart(typing.cast('email.message.EmailMessage', part), counter))
         else:
             return self.prepare_multipart_part_attachment(msg, counter)
 
@@ -1013,14 +1013,14 @@ class EmlParser:
 
                 try:
                     custom_policy: email.policy.Policy = email.policy.default.clone(max_line_length=0)
-                    data = typing.cast(list[email.message.EmailMessage], payload)[0].as_bytes(policy=custom_policy)
+                    data = typing.cast('list[email.message.EmailMessage]', payload)[0].as_bytes(policy=custom_policy)
                 except UnicodeEncodeError:
                     custom_policy = email.policy.compat32.clone(max_line_length=0)
-                    data = typing.cast(list[email.message.EmailMessage], payload)[0].as_bytes(policy=custom_policy)
+                    data = typing.cast('list[email.message.EmailMessage]', payload)[0].as_bytes(policy=custom_policy)
 
                 file_size = len(data)
             else:
-                data = typing.cast(bytes, msg.get_payload(decode=True))
+                data = typing.cast('bytes', msg.get_payload(decode=True))
                 file_size = len(data)
 
             filename = msg.get_filename('')
