@@ -10,17 +10,18 @@ license-files = { paths = ["LICENSE"] }
 authors = [{ name = "Georges Toth", email = "georges.toth@govcert.etat.lu" }]
 keywords = ["email"]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
-    "Intended Audience :: Developers",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Topic :: Communications :: Email",
+  "Development Status :: 5 - Production/Stable",
+  "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Communications :: Email",
 ]
 requires-python = ">= 3.9"
 dependencies = [
@@ -97,13 +98,13 @@ strict_optional = true
 check_untyped_defs = false
 
 files = [
-    "eml_parser/**/*.py"
+  "eml_parser/**/*.py"
 ]
 
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = [
-    "tests"
+  "tests"
 ]
 
 [tool.ruff]
