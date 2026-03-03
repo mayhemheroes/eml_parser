@@ -34,7 +34,7 @@ pip install eml_parser[filemagic]
 
 !!! danger
     Note for **OSX** users:
-    
+
     Make sure to install libmagic, else eml_parser will **not** work.
 
 ### Known Issues

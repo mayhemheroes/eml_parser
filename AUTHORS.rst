@@ -1,4 +1,4 @@
-﻿Credits
+Credits
 =======
 
 ``eml_parser`` is written and maintained by `Georges Toth <https://github.com/sim0nx>`_.
