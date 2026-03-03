@@ -47,6 +47,7 @@ docs = [
   "mkdocstrings[crystal,python]",
 ]
 dev = [
+  "pip",
   "mypy",
   "types-python-dateutil",
   "types-chardet",
@@ -54,7 +55,7 @@ dev = [
   "prek>=0.3.4",
 ]
 test = [
-  "pytest",
+  "pytest>=8.3",
   "pytest-sugar",
   "coverage",
 ]
@@ -63,26 +64,24 @@ test = [
 filemagic = ["file-magic >= 0.4.0"]
 regex = ["regex"]
 
-[dependency-groups]
-docs = [
-    "mkdocs-material",
-    "mkdocstrings[crystal,python]",
-]
-dev = [
-    "pip",
-    "mypy",
-    "types-python-dateutil",
-    "types-chardet",
-    "ruff",
-]
-test = [
-    "pytest>=8.3",
-    "pytest-sugar",
-    "coverage",
-]
-
 [tool.hatch.envs.default]
 installer = "uv"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build]
+include = [
+  "eml_parser",
+  "tests",
+  "examples",
+]
+
+[tool.hatch.build.targets.wheel]
+exclude = [
+  "tests",
+  "examples",
+]
 
 [tool.mypy]
 show_error_context = true
@@ -100,9 +99,6 @@ check_untyped_defs = false
 files = [
     "eml_parser/**/*.py"
 ]
-
-[tool.hatch.version]
-source = "vcs"
 
 [tool.pytest.ini_options]
 minversion = "8.0"
