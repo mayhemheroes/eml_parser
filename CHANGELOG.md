@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.0.0]
+### Breaking
+- Set minimum supported Python version to 3.10 with 3.9 being EoL.
+- Upgrade typing syntax for Python 3.10
+
 ## [v2.0.1]
 ### Fixes
 - Fix path traversal vulnerability in the example code "examples/recursively_extract_attachments.py" (#88, thanks @redyank)

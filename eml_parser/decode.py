@@ -81,7 +81,7 @@ def decode_field(field: str) -> str:
     return string
 
 
-def decode_string(string: bytes, encoding: typing.Optional[str] = None) -> str:
+def decode_string(string: bytes, encoding: str | None = None) -> str:
     """Try anything possible to parse an encoded bytes string and return the result.
 
     We do this using the encoding hint, if this fails, we try to detect the correct
@@ -214,7 +214,7 @@ def robust_string2date(line: str) -> datetime.datetime:
     return date_
 
 
-def json_serial(obj: typing.Any) -> typing.Optional[str]:
+def json_serial(obj: typing.Any) -> str | None:
     """JSON serializer for objects not serializable by default json code."""
     if isinstance(obj, datetime.datetime):
         if obj.tzinfo is not None:

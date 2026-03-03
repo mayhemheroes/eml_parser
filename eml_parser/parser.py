@@ -116,8 +116,8 @@ class EmlParser:
         self,
         include_raw_body: bool = False,
         include_attachment_data: bool = False,
-        pconf: typing.Optional[dict] = None,
-        policy: typing.Optional[email.policy.Policy] = None,
+        pconf: dict | None = None,
+        policy: email.policy.Policy | None = None,
         ignore_bad_start: bool = False,
         email_force_tld: bool = False,
         domain_force_tld: bool = False,
@@ -178,7 +178,7 @@ class EmlParser:
         if 'whitefor' not in self.pconf:
             self.pconf['whitefor'] = []
 
-        self.msg: typing.Optional[email.message.Message] = None
+        self.msg: email.message.Message | None = None
 
     def decode_email(self, eml_file: os.PathLike, ignore_bad_start: bool = False) -> dict:
         """Function for decoding an EML file into an easily parsable structure.
@@ -709,7 +709,7 @@ class EmlParser:
 
                 ptr_start = ptr_end
 
-    def get_valid_domain_or_ip(self, data: str) -> typing.Optional[str]:
+    def get_valid_domain_or_ip(self, data: str) -> str | None:
         """Function to determine if an IP address, Email address, or Domain is valid.
 
         Args:
@@ -737,7 +737,7 @@ class EmlParser:
 
         return None
 
-    def clean_found_uri(self, url: str) -> typing.Optional[str]:
+    def clean_found_uri(self, url: str) -> str | None:
         """Function for validating URLs from the input string.
 
         Args:
@@ -858,9 +858,7 @@ class EmlParser:
 
         return return_field
 
-    def get_raw_body_text(
-        self, msg: email.message.Message, boundary: typing.Optional[str] = None
-    ) -> list[tuple[typing.Any, typing.Any, typing.Any, typing.Optional[str]]]:
+    def get_raw_body_text(self, msg: email.message.Message, boundary: str | None = None) -> list[tuple[typing.Any, typing.Any, typing.Any, str | None]]:
         """This method recursively retrieves all e-mail body parts and returns them as a list.
 
         Args:
@@ -870,7 +868,7 @@ class EmlParser:
         Returns:
             list: Returns a list of sets which are in the form of "set(encoding, raw_body_string, message field headers, possible boundary marker)"
         """
-        raw_body: list[tuple[typing.Any, typing.Any, typing.Any, typing.Optional[str]]] = []
+        raw_body: list[tuple[typing.Any, typing.Any, typing.Any, str | None]] = []
 
         if msg.is_multipart():
             boundary = msg.get_boundary(failobj=None)
@@ -931,7 +929,7 @@ class EmlParser:
         return {k: EmlParser.get_hash(data, k) for k in hashalgo}
 
     @staticmethod
-    def get_hash(value: typing.Union[str, bytes], hash_type: str) -> str:
+    def get_hash(value: str | bytes, hash_type: str) -> str:
         """Generate a hash of type *hash_type* for a given value.
 
         Args:
@@ -1071,7 +1069,7 @@ class EmlParser:
         return attachment
 
     @staticmethod
-    def get_mime_type(data: bytes) -> typing.Union[tuple[str, str], tuple[None, None]]:
+    def get_mime_type(data: bytes) -> tuple[str, str] | tuple[None, None]:
         """Get mime-type information based on the provided bytes object.
 
         Args:

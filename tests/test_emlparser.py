@@ -70,7 +70,7 @@ def recursive_compare(element_a: dict[str, str], element_b: dict[str, str]) -> N
             assert v in element_b_flat[k]
 
 
-def json_serial(obj: typing.Any) -> typing.Optional[str]:
+def json_serial(obj: typing.Any) -> str | None:
     """JSON serializer for objects not serializable by default json code"""
 
     if isinstance(obj, datetime.datetime):
