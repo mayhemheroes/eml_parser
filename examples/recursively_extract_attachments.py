@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
 #
 # Simple example showing how to parse all .eml files in the current folder
@@ -17,14 +16,13 @@ import eml_parser
 
 def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
-
     if isinstance(obj, datetime.datetime):
         serial = obj.isoformat()
         return serial
-    elif isinstance(obj, email.header.Header):
+    if isinstance(obj, email.header.Header):
         print(str(obj))
         raise Exception('object cannot be of type email.header.Header')
-    elif isinstance(obj, bytes):
+    if isinstance(obj, bytes):
         return obj.decode('utf-8', errors='ignore')
 
     raise TypeError(f'Type "{str(type(obj))}" not serializable')
@@ -32,10 +30,8 @@ def json_serial(obj):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('-p', dest='path',
-                        help='Path to scan for EML files.', required=True)
-    parser.add_argument('-o', dest='outpath', default='.',
-                        help='Path where to save attachments in (default is current directory).')
+    parser.add_argument('-p', dest='path', help='Path to scan for EML files.', required=True)
+    parser.add_argument('-o', dest='outpath', default='.', help='Path where to save attachments in (default is current directory).')
 
     options = parser.parse_args()
 
