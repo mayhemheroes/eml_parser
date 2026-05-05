@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.0.1]
+### Changes
+- Address unlimited recursion issue by raising *RecursionError* if *MULTIPART_RECURSION_LIMIT* has been reached (defaults to 100).
+
 ## [v3.0.0]
 ### Breaking
 - Set minimum supported Python version to 3.10 with 3.9 being EoL.

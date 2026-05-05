@@ -111,6 +111,8 @@ class CustomPolicy(email.policy.EmailPolicy):
 class EmlParser:
     """eml-parser class."""
 
+    MULTIPART_RECURSION_LIMIT = 100
+
     # pylint: disable=too-many-arguments
     def __init__(
         self,
@@ -858,22 +860,32 @@ class EmlParser:
 
         return return_field
 
-    def get_raw_body_text(self, msg: email.message.Message, boundary: str | None = None) -> list[tuple[typing.Any, typing.Any, typing.Any, str | None]]:
+    def get_raw_body_text(
+        self, msg: email.message.Message, boundary: str | None = None, depth: int = 0
+    ) -> list[tuple[typing.Any, typing.Any, typing.Any, str | None]]:
         """This method recursively retrieves all e-mail body parts and returns them as a list.
 
         Args:
             msg (email.message.Message): The actual e-mail message or sub-message.
             boundary: Used for passing the boundary marker of multipart messages, and used to easier distinguish different parts.
+            depth: Parameter used to track the current recursion level.
 
         Returns:
             list: Returns a list of sets which are in the form of "set(encoding, raw_body_string, message field headers, possible boundary marker)"
+
+        Raises:
+            RecursionError: If recursion limit exceeded.
         """
         raw_body: list[tuple[typing.Any, typing.Any, typing.Any, str | None]] = []
+
+        if depth > EmlParser.MULTIPART_RECURSION_LIMIT:
+            logger.warning('multi-part nesting limit (%d) exceeded, aborting', EmlParser.MULTIPART_RECURSION_LIMIT)
+            raise RecursionError('Recursion limit exceeded')
 
         if msg.is_multipart():
             boundary = msg.get_boundary(failobj=None)
             for part in msg.get_payload():
-                raw_body.extend(self.get_raw_body_text(typing.cast('email.message.Message', part), boundary=boundary))
+                raw_body.extend(self.get_raw_body_text(typing.cast('email.message.Message', part), boundary=boundary, depth=depth + 1))
         else:
             # Treat text document attachments as belonging to the body of the mail.
             # Attachments with a file-extension of .htm/.html are implicitly treated
@@ -951,19 +963,27 @@ class EmlParser:
 
         return hash_algo(_value).hexdigest()
 
-    def traverse_multipart(self, msg: email.message.Message, counter: int = 0) -> dict[str, typing.Any]:
+    def traverse_multipart(self, msg: email.message.Message, counter: int = 0, depth: int = 0) -> dict[str, typing.Any]:
         """Recursively traverses all e-mail message multi-part elements and returns in a parsed form as a dict.
 
         Args:
             msg (email.message.Message): An e-mail message object.
             counter (int, optional): A counter which is used for generating attachments
                 file-names in case there are none found in the header. Default = 0.
+            depth: Parameter used to track the current recursion level.
 
         Returns:
             dict: Returns a dict with all original multi-part headers as well as generated hash check-sums,
                 date size, file extension, real mime-type.
+
+        Raises:
+            RecursionError: If recursion limit exceeded.
         """
         attachments = {}
+
+        if depth > EmlParser.MULTIPART_RECURSION_LIMIT:
+            logger.warning('multi-part nesting limit (%d) exceeded, aborting', EmlParser.MULTIPART_RECURSION_LIMIT)
+            raise RecursionError('Recursion limit exceeded')
 
         if msg.is_multipart():
             if 'content-type' in msg:
@@ -972,7 +992,7 @@ class EmlParser:
                     attachments.update(self.prepare_multipart_part_attachment(msg, counter))
 
             for part in msg.get_payload():
-                attachments.update(self.traverse_multipart(typing.cast('email.message.EmailMessage', part), counter))
+                attachments.update(self.traverse_multipart(typing.cast('email.message.EmailMessage', part), counter=counter, depth=depth + 1))
         else:
             return self.prepare_multipart_part_attachment(msg, counter)
 
