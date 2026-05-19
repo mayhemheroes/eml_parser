@@ -43,6 +43,7 @@ content-type = "text/markdown"
 
 [dependency-groups]
 docs = [
+  "griffe-typingdoc>=0.3.0",
   "mkdocs-material",
   "mkdocstrings[crystal,python]",
 ]

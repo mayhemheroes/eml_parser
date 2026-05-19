@@ -9,6 +9,7 @@ theme:
 
 plugins:
 - search
+- mkdocstrings
 
 watch:
   - eml_parser
