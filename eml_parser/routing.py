@@ -8,29 +8,24 @@ import eml_parser.regexes
 
 
 def noparenthesis(line: str) -> str:
-    """Remove nested parenthesis, until none are present.
-
-    @FIXME rewrite this function.
+    """Remove nested parentheses, until no pairs of matching parentyheses are present.
 
     Args:
-        line (str): Input text to search in for parenthesis.
+        line (str): Input text to search in for parentheses.
 
     Returns:
-        str: Return a string with all parenthesis removed.
+        str: Return a string with all text in matching parentheses removed. For example,
+        noparenthesis('a((b)c(d') == 'a(c(d'
     """
-    # check empty string
-    if not line:
-        return line
-
-    line_ = line
-
-    while True:
-        lline = line_
-        line_ = eml_parser.regexes.noparenthesis_regex.sub('', line_)
-        if lline == line_:
-            break
-
-    return line_
+    fragments: list[list[str]] = [[]]
+    for ch in line:
+        if ch == '(':
+            fragments.append([ch])
+        else:
+            fragments[-1].append(ch)
+        if ch == ')' and len(fragments) > 1:
+            fragments.pop()
+    return ''.join(ch for w in fragments for ch in w)
 
 
 def cleanline(line: str) -> str:

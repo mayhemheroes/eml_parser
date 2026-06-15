@@ -495,3 +495,28 @@ Lorem ipsüm dolor sit amét, consectetur 10$ + 5€ adipiscing elit. Praesent f
             output_3 = ep.decode_email_bytes(fhdl.read())
 
         assert 'message-id' not in output_3['header']['header']
+
+    def test_parse_urls_with_html_entities(self) -> None:
+        phish_eml = (
+            b'From: security@bank-of-examples.com\r\n'
+            b'To: victim@example.org\r\n'
+            b'Subject: Urgent: Verify Your Account\r\n'
+            b'Date: Mon, 2 May 2026 10:00:00 +0000\r\n'
+            b'Content-Type: text/html; charset="utf-8"\r\n'
+            b'\r\n'
+            b'<html><body>\r\n'
+            b'<p>Dear customer,</p>\r\n'
+            b'<p>Please verify your account at\r\n'
+            b'<a href="https:&#47;&#47;phishing&#46;example&#46;com/verify?id=ABCD1234">click here</a></p>\r\n'
+            b'<img src="other.example&#46;com?something&amp;blub">\r\n'
+            b'Send us an <a href="mailto&#58;scammer@example&#46;com">e-mail</a>!\r\n'
+            b'<p>Bank of Examples Security</p>\r\n'
+            b'</body></html>\r\n'
+        )
+        ep = eml_parser.EmlParser(include_raw_body=True, include_www=True, include_href=True)
+        result = ep.decode_email_bytes(phish_eml)
+        body = result['body'][0]
+
+        assert body['uri'] == ['https://phishing.example.com/verify?id=ABCD1234']
+        assert set(body['uri_noscheme']) == {'other.example.com?something&blub', 'mailto:scammer@example.com'}
+        assert set(body['domain']) == {'phishing.example.com', 'other.example.com', 'example.com'}

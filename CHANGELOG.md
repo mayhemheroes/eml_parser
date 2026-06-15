@@ -3,6 +3,13 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.0.2]
+### Changes
+- Reduce the time complexity of receive line parsing from quadratic to linear
+- Properly handle HTML entities in extracted URLs
+- Catch the *RecursionError* that can occur when parsing certain headers involving e-mail addresses,
+  and fall back to regex-based parsing
+
 ## [v3.0.1]
 ### Changes
 - Address unlimited recursion issue by raising *RecursionError* if *MULTIPART_RECURSION_LIMIT* has been reached (defaults to 100).

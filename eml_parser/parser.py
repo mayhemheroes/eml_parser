@@ -105,6 +105,15 @@ class CustomPolicy(email.policy.EmailPolicy):
 
             return eml_parser.decode.robust_string2date(value).isoformat()
 
+        elif header in ('sender', 'resent-sender', 'to', 'resent-to', 'cc', 'resent-cc', 'bcc', 'resent-bcc', 'from', 'resent-from', 'reply-to'):
+            try:
+                return super().header_fetch_parse(name, value)
+            except RecursionError:
+                # This can happen when the recursion gets too deep in in the stdlib recursive descent parser.
+                # In this case, the header is certainly pathological. We still try to extract some addresses.
+                m = eml_parser.regexes.email_regex.findall(value)
+                return ', '.join(m)
+
         return super().header_fetch_parse(name, value)
 
 
@@ -172,6 +181,8 @@ class EmlParser:
 
         if self.email_force_tld:
             eml_parser.regexes.email_regex = eml_parser.regexes.email_force_tld_regex
+        else:
+            eml_parser.regexes.email_regex = eml_parser.regexes.email_no_force_tld_regex
 
         # If no whitelisting is required, set to emtpy list
         if 'whiteip' not in self.pconf:
@@ -485,6 +496,14 @@ class EmlParser:
                     if valid_domain:
                         list_observed_dom[match.lower()] = 1
 
+                # URLs do not necessarily appear as-is in the body, as they may contain escaped entities.
+                # For this reason, we have to extract the domains again from each parsed URL.
+                for url in list_observed_urls + list_observed_urls_noscheme:
+                    for match in eml_parser.regexes.dom_regex.findall(url):
+                        valid_domain = self.get_valid_domain_or_ip(match.lower())
+                        if valid_domain:
+                            list_observed_dom[match.lower()] = 1
+
                 for ip_regex in (eml_parser.regexes.ipv4_regex, eml_parser.regexes.ipv6_regex):
                     for match in ip_regex.findall(body_slice):
                         valid_ip = self.get_valid_domain_or_ip(match.lower())
@@ -748,6 +767,9 @@ class EmlParser:
         Returns:
             str: Returns a valid URL, if found in the input string.
         """
+        if '&' in url:
+            url = unescape(url)
+
         if '.' not in url and '[' not in url:
             # if we found a URL like e.g. http://afafasasfasfas; that makes no
             # sense, thus skip it, but include http://[2001:db8::1]
@@ -780,9 +802,6 @@ class EmlParser:
         # filter bogus URLs
         if url.endswith('://'):
             return None
-
-        if '&' in url:
-            url = unescape(url)
 
         return url
 
