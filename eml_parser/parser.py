@@ -860,12 +860,23 @@ class EmlParser:
             for v in _field:
                 v = eml_parser.decode.rfc2047_decode(v).replace('\n', '').replace('\r', '')
 
-                parsing_result: dict[str, typing.Any] = {}
-                parser_cls = typing.cast('email.headerregistry.AddressHeader', email.headerregistry.HeaderRegistry()[header])
-                parser_cls.parse(v, parsing_result)
-                for _group in parsing_result['groups']:
-                    for _address in _group.addresses:
-                        field.append((_address.display_name, _address.addr_spec))
+                try:
+                    parsing_result: dict[str, typing.Any] = {}
+                    parser_cls = typing.cast('email.headerregistry.AddressHeader', email.headerregistry.HeaderRegistry()[header])
+                    parser_cls.parse(v, parsing_result)
+                    for _group in parsing_result['groups']:
+                        for _address in _group.addresses:
+                            field.append((_address.display_name, _address.addr_spec))
+                except (AttributeError, IndexError):
+                    # The stdlib address/header parser can itself raise on certain malformed
+                    # values (e.g. an unquoted display name ending in a bare period, such as
+                    # "Test.<test@example.com>"). The exact exception type raised for this
+                    # case has varied across Python versions, so we defensively catch it here
+                    # too and fall back to a best-effort regex extraction of e-mail addresses.
+                    logger.exception('Field value parsing error while parsing "%s", falling back to regex extraction!', v)
+
+                    for m in eml_parser.regexes.email_regex.findall(v):
+                        field.append(('', m))
 
         return_field = []
 

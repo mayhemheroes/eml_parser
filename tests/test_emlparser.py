@@ -3,7 +3,6 @@ import email.policy
 import email.utils
 import json
 import pathlib
-import platform
 import typing
 from email.headerregistry import Address
 from email.message import EmailMessage
@@ -251,27 +250,51 @@ Lorem ipsüm dolor sit amét, consectetur 10$ + 5€ adipiscing elit. Praesent f
 
     def test_headeremail2list_2(self) -> None:
         """Here we test the headeremail2list function using an input which should trigger
-        a email library bug 27257
+        a email library bug (27257, or a related unquoted-trailing-period display-name
+        parsing bug that still affects some Python versions).
         """
         with pathlib.Path(samples_dir, 'sample_bug27257.eml').open('rb') as fhdl:
             raw_email = fhdl.read()
 
         msg = email.message_from_bytes(raw_email, policy=email.policy.default)
 
-        python_version_tuple = platform.python_version_tuple()
-        if python_version_tuple[0] == '3' and int(python_version_tuple[1]) < 12:
-            # Just to be sure we still hit bug 27257 (else there is no more need for the workaround)
-            # This should no longer raise under Python >= 3.12
-            with pytest.raises(AttributeError):
-                msg.items()
-        else:
-            assert msg.items()
+        ep = eml_parser.EmlParser()
+        ep.msg = msg
+
+        # Regardless of whether this particular Python/stdlib version raises on
+        # msg.items()/get_all() for this malformed header, our own workaround must
+        # still produce the correct result.
+        assert ep.headeremail2list(header='to') == ['test@example.com']
+
+    def test_headeremail2list_valueerror_branch_fallback(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Regression test for the 'except ValueError' branch of headeremail2list.
+
+        Some Python versions surface the malformed "Test.<test@example.com>" style
+        header (unquoted display name ending in a bare period) as a ValueError from
+        Message.get_all(), rather than the AttributeError handled by the other except
+        clause. In that case, headeremail2list falls back to parsing each raw value
+        with email.headerregistry.HeaderRegistry directly - but that stdlib parser can
+        itself raise on this same input. We force that branch here (regardless of what
+        the current interpreter actually raises) and verify we still fall back to
+        regex-based extraction instead of propagating the exception.
+        """
+        with pathlib.Path(samples_dir, 'sample_bug27257.eml').open('rb') as fhdl:
+            raw_email = fhdl.read()
+
+        msg = email.message_from_bytes(raw_email, policy=email.policy.default)
+
+        original_get_all = email.message.Message.get_all
+
+        def fake_get_all(self: email.message.Message, *args: typing.Any, **kwargs: typing.Any) -> typing.Any:
+            if self.policy is email.policy.default:
+                raise ValueError('forced for test')
+            return original_get_all(self, *args, **kwargs)
+
+        monkeypatch.setattr(email.message.Message, 'get_all', fake_get_all)
 
         ep = eml_parser.EmlParser()
         ep.msg = msg
 
-        # our parsing function should trigger an exception leading to the parsing
-        # using a workaround
         assert ep.headeremail2list(header='to') == ['test@example.com']
 
     def test_parse_email_1(self) -> None:
