@@ -413,10 +413,11 @@ class EmlParser:
 
                 # search for e-mail addresses
                 for mail_candidate in eml_parser.regexes.email_regex.findall(received_line_flat):
+                    validated_mail_candidate = mail_candidate
                     if self.email_force_tld:
-                        mail_candidate = self.get_valid_domain_or_ip(mail_candidate)
-                    if mail_candidate is not None and mail_candidate not in parsed_routing.get('for', []):
-                        headers_struc['received_email'] += [mail_candidate]
+                        validated_mail_candidate = self.get_valid_domain_or_ip(mail_candidate)
+                    if validated_mail_candidate is not None and validated_mail_candidate not in parsed_routing.get('for', []):
+                        headers_struc['received_email'] += [validated_mail_candidate]
 
         except TypeError:  # Ready to parse email without received headers.
             logger.exception('Exception occurred while parsing received lines.')
@@ -557,12 +558,12 @@ class EmlParser:
             # "a","titi"   --->    c: [truc]
             # "c","truc"
             ch: dict[str, list] = {}
-            for k, v in body_multhead:
+            for header_key, header_value in body_multhead:
                 # make sure we are working with strings only
-                v = str(v)
+                v = str(header_value)
 
                 # We are using replace . to : for avoiding issue in mongo
-                k = k.lower().replace('.', ':')  # Lot of lowers, pre-compute :) .
+                k = header_key.lower().replace('.', ':')  # Lot of lowers, pre-compute :) .
 
                 if multipart:
                     if k in ch:
@@ -605,8 +606,8 @@ class EmlParser:
         # "a","titi"   --->    c: [truc]
         # "c","truc"
         #
-        for k in set(self.msg.keys()):
-            k = k.lower()  # Lot of lower, pre-compute...
+        for header_field_name in set(self.msg.keys()):
+            k = header_field_name.lower()  # Lot of lower, pre-compute...
             decoded_values = []
 
             try:
@@ -699,7 +700,9 @@ class EmlParser:
         else:
             ptr_start = 0
 
-            for ptr_end in range(slice_step, body_length + slice_step, slice_step):
+            for _ptr_end in range(slice_step, body_length + slice_step, slice_step):
+                ptr_end = _ptr_end
+
                 if ' ' in body[ptr_end - 1 : ptr_end]:
                     while not (eml_parser.regexes.window_slice_regex.match(body[ptr_end - 1 : ptr_end]) or ptr_end > body_length):
                         if ptr_end > body_length:
@@ -857,8 +860,8 @@ class EmlParser:
             _field = eml_parser.decode.workaround_field_value_parsing_errors(self.msg, header)
             field = []
 
-            for v in _field:
-                v = eml_parser.decode.rfc2047_decode(v).replace('\n', '').replace('\r', '')
+            for raw_value in _field:
+                v = eml_parser.decode.rfc2047_decode(raw_value).replace('\n', '').replace('\r', '')
 
                 try:
                     parsing_result: dict[str, typing.Any] = {}
@@ -1103,9 +1106,9 @@ class EmlParser:
                 attachment[file_id]['raw'] = base64.b64encode(data)
 
             ch: dict[str, list[str]] = {}
-            for k, v in msg.items():
-                k = k.lower()
-                v = str(v)
+            for header_key, header_value in msg.items():
+                k = header_key.lower()
+                v = str(header_value)
 
                 if k in ch:
                     ch[k].append(v)
