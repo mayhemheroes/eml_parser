@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Fix `AttributeError` crash in `rfc2047_decode()` when decoding header values that contain no RFC2047 encoded-word (e.g. plain ASCII). `email.header.decode_header()` returns `str` fragments in that case instead of `bytes`, which was previously assumed unconditionally.
 - Fix `email_no_force_tld_regex`/`email_force_tld_regex` incorrectly matching a comma (`,`) as part of an e-mail local-part due to an unescaped hyphen forming an unintended character range (`+` to `/`) in the regex character class. This could cause two comma-separated addresses to be merged into a single, invalid match.
 - Fix a potential crash in `headeremail2list()` when a header contains an unquoted display name ending in a bare period (e.g. `Test.<test@example.com>`). The stdlib's `email.headerregistry` parser can itself raise on this input, and the exact exception type it raises for this case has varied across Python versions; this exception is now caught and we fall back to regex-based e-mail extraction instead of propagating the error.
+- Fix PLW2901 issues
 
 ## [v3.0.2]
 ### Changes
