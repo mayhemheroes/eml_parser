@@ -1,6 +1,6 @@
 import pathlib
 
-from eml_parser.regexes import dom_regex, url_regex_simple, url_regex_www
+from eml_parser.regexes import dom_regex, email_regex, url_regex_simple, url_regex_www
 
 my_execution_dir = pathlib.Path(__file__).resolve().parent
 parent_dir = my_execution_dir.parent
@@ -51,3 +51,19 @@ class TestRegularExpressions:
         expected_result = ['www1.example.com', 'www2.example.com']
 
         assert expected_result == dom_regex.findall(test_doms)
+
+    def test_email_regex_comma_separator(self) -> None:
+        """Regression test: an unescaped hyphen in the character class used to
+        form an accidental ASCII range ('+' to '/'), which included ',' and
+        caused two comma-separated addresses to be matched as a single,
+        invalid address.
+        """
+        assert email_regex.findall('contact me at a,b@example.com please') == ['b@example.com']
+
+    def test_email_regex_valid_local_part_chars(self) -> None:
+        """Ensure characters legitimately allowed in the local-part (hyphen,
+        plus, slash) are still matched after fixing the character class.
+        """
+        assert email_regex.findall('john-doe@example.com') == ['john-doe@example.com']
+        assert email_regex.findall('user+tag@example.com') == ['user+tag@example.com']
+        assert email_regex.findall('a/b@example.com') == ['a/b@example.com']

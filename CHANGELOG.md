@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Fixes
+- Fix `AttributeError` crash in `rfc2047_decode()` when decoding header values that contain no RFC2047 encoded-word (e.g. plain ASCII). `email.header.decode_header()` returns `str` fragments in that case instead of `bytes`, which was previously assumed unconditionally.
+- Fix `email_no_force_tld_regex`/`email_force_tld_regex` incorrectly matching a comma (`,`) as part of an e-mail local-part due to an unescaped hyphen forming an unintended character range (`+` to `/`) in the regex character class. This could cause two comma-separated addresses to be merged into a single, invalid match.
+
 ## [v3.0.2]
 ### Changes
 - Reduce the time complexity of receive line parsing from quadratic to linear

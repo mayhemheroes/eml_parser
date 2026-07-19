@@ -257,7 +257,11 @@ def rfc2047_decode(value: str) -> str:
     parsed = ''
 
     for k, v in email.header.decode_header(value):
-        if v is None:
+        if isinstance(k, str):
+            # decode_header returns str (not bytes) for fragments which did not
+            # need RFC2047 decoding, e.g. when the whole value is plain ASCII.
+            parsed += k
+        elif v is None:
             parsed += k.decode('ascii', errors='ignore')
 
         else:

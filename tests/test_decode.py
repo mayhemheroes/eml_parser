@@ -33,6 +33,16 @@ class TestDecode:
         for clear, encoded in test_subjects.items():
             assert eml_parser.decode.decode_field(encoded) == clear
 
+    def test_rfc2047_decode(self) -> None:
+        """Regression test: rfc2047_decode must not crash on values which
+        contain no RFC2047 encoded-word at all. In that case
+        email.header.decode_header() returns plain str fragments instead of
+        bytes, which used to trigger an AttributeError.
+        """
+        assert eml_parser.decode.rfc2047_decode('') == ''
+        assert eml_parser.decode.rfc2047_decode('plain ascii subject no encoding') == 'plain ascii subject no encoding'
+        assert eml_parser.decode.rfc2047_decode('=?utf-8?B?SGVsbG8=?= plain') == 'Hello plain'
+
     def test_robust_string2date(self) -> None:
         """Test the converter function, it should never return the default date
         on the provided input
